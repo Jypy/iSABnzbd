@@ -1,0 +1,14 @@
+Package: eu.jypy.isabnzbd
+Version: 0.7.20b
+Section: Jypyz.Products.iSAB
+Priority: standard
+Installed-Size: 
+Maintainer: Jean-Philippe Bouillot (Jypy) <jypyzproducts@jypy.eu>
+Pre-Depends: firmware (>= 3.0)
+Depends: eu.jypy.iconpack, python, openssl, unrar, eu.jypy.python-cheetah-ios, eu.jypy.python-yenc-ios, coreutils, unzip, eu.jypy.par2cmdline
+Architecture: iphoneos-arm
+Name: iSABnzbd
+Author: Jean-Philippe Bouillot (Jypy) <jypyzproducts@jypy.eu>
+Depiction: http://jypy.eu/products/iSAB_main.html
+Description: SABnzbd Newsreader for iDevices
+Sponsor: Jypy.eu <http://jypy.eu>

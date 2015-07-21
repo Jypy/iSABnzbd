@@ -1,0 +1,27 @@
+#!/bin/sh
+
+folder_app="/Applications/iSABnzbd.app/"
+folder_data="/var/mobile/Documents/JypyzProducts/iSABnzbd/"
+
+echo
+
+if [ -f ${folder_data}sabnzbd.ini ] ;then
+	echo Data OK!
+else
+	mkdir -p $folder_data 
+	
+	if [ -f ${folder_app}sabnzbd.ini ] ;then
+		echo Moving data...
+		mv ${folder_app}admin ${folder_data}
+		mv ${folder_app}Downloads ${folder_data}
+		mv ${folder_app}logs ${folder_data}
+		mv ${folder_app}sabnzbd.ini ${folder_data}
+	else
+		echo Fresh install!
+	
+	fi
+fi
+
+echo
+echo Pre-flight Done!
+echo
