@@ -1,0 +1,42 @@
+#encoding UTF-8
+##
+## SABnzbd 默认电子邮件模板
+## 这是一款 Cheetah 模板
+## 文档: http://sabnzbd.wikidot.com/email-templates
+##
+## 新行与空格均有重要意义!
+##
+## 这些是电子邮件头
+To: $to
+From: $from
+Date: $date
+Subject: SABnzbd 已<!--#if $status then "完成" else "失败" #-->任务 $name
+X-priority: 5
+X-MS-priority: 5
+## 到主体部分时，必须要有空行!
+
+Hi,
+<!--#if $status #-->
+SABnzbd 已完成 "$name" 的下载 <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
+<!--#else#-->
+SABnzbd 下载 "$name" 失败 <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
+<!--#end if#-->
+完成于 $end_time
+已下载 $size
+
+任务结果:
+<!--#for $stage in $stages #-->
+Stage $stage <!--#slurp#-->
+<!--#for $result in $stages[$stage]#-->
+    $result <!--#slurp#-->
+<!--#end for#-->
+<!--#end for#-->
+<!--#if $script!="" #-->
+用户脚本 "$script" 输出内容 (退出代码 = $script_ret):
+$script_output
+<!--#end if#-->
+<!--#if $status #-->
+Enjoy!
+<!--#else#-->
+非常抱歉!
+<!--#end if#-->

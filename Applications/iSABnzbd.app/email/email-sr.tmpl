@@ -1,0 +1,42 @@
+#encoding UTF-8
+##
+## Шаблон основне е-поште за САБнзбд
+## Ово је Гепард шаблон
+## Документација: http://sabnzbd.wikidot.com/email-templates
+##
+## Нови редови и размаци су важни!
+##
+## Ово су заглавља е-поруке
+Прима: $to
+Шаље: $from
+Датум: $date
+Тема: САБнзбд је <!--#if $status then "завршио" else "није обавио" #--> посао $name
+Х-приоритет: 5
+Х-МС-приоритет: 5
+## После тога долази разрада, празни редови су потребни!
+
+Здраво,
+<!--#if $status #-->
+САБнзбд је преузео „$name“ <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
+<!--#else#-->
+САБнзбд није успео да преузме „$name“ <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
+<!--#end if#-->
+Завршено је у $end_time
+Преузето је $size
+\n
+Резултат рада:
+<!--#for $stage in $stages #-->
+Фаза $stage <!--#slurp#-->
+<!--#for $result in $stages[$stage]#-->
+    $result <!--#slurp#-->
+<!--#end for#-->
+<!--#end for#-->
+<!--#if $script!="" #-->
+Излаз корисничке скрипте „$script“ (Код излаза = $script_ret):
+$script_output
+<!--#end if#-->
+<!--#if $status #-->
+Уживајте!
+<!--#else#-->
+Жао ми је!
+<!--#end if#-->

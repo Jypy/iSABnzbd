@@ -4,5 +4,5 @@
 
 # You MUST use double quotes (so " and not ')
 
-__version__ = "0.7.20"
-__baseline__ = "1df2943d05d64915a166e2c97e1eef86f72e3ff3"
+__version__ = "1.0.0"
+__baseline__ = "a58bb385f57d0c5c8a92b7e3ea082d776363767e"

@@ -9,6 +9,7 @@ jQuery(function($){
   //  Plush defaults
 
   refreshRate:          $.cookie('plushRefreshRate')     ? $.cookie('plushRefreshRate')  : 4, // refresh rate in seconds
+  speedLimitType:       $.cookie('plushSpeedLimitType')  ? $.cookie('plushSpeedLimitType')  : '%', // how to display the speedlimit
   containerWidth:       $.cookie('plushContainerWidth')  ? $.cookie('plushContainerWidth')  : '100%', // width of all elements on page
   queuePerPage:         $.cookie('plushQueuePerPage')    ? $.cookie('plushQueuePerPage') : 5, // pagination - nzbs per page
   histPerPage:          $.cookie('plushHistPerPage')     ? $.cookie('plushHistPerPage')  : 5, // pagination - nzbs per page
@@ -44,7 +45,7 @@ jQuery(function($){
           type: "POST",
           url: "tapi",
           data: {
-            mode:     'addid',
+            mode:     'addurl',
             name:     $("#addID_input").val(),
             pp:       $("#addID_pp").val(),
             script:   $("#addID_script").val(),
@@ -145,25 +146,55 @@ jQuery(function($){
   $("#plush_options").colorbox({ inline:true, href:"#plush_options_modal", title:$("#plush_options").text(),
     innerWidth:"375px", innerHeight:"350px", initialWidth:"375px", initialHeight:"350px", speed:0, opacity:0.7
   });
+  
+  // Save the type of speedlimit display
+  $('#maxSpeed-label').change(function() {
+    $.plush.speedLimitType = $(this).val();
+    $.cookie('plushSpeedLimitType', $.plush.speedLimitType, { expires: 365 });
+    // Update the text
+    $.plush.focusedOnSpeedChanger = false;
+    $.plush.SetQueueSpeedLimit();
+  })
+  // Set stored value
+  $('#maxSpeed-label').val($.plush.speedLimitType)
 
   // Max Speed main menu input -- don't change value on refresh when focused
-  $("#maxSpeed-option").focus(function(){ $.plush.focusedOnSpeedChanger = true; })
-    .blur(function(){ $.plush.focusedOnSpeedChanger = false; })
-    .parent().click(function(){ $("#maxSpeed-option").focus(); });
-  $("#maxSpeed-enable,#maxSpeed-disable").click( function(e) {  // works with hitting enter
-    if ($(e.target).attr('id')=="maxSpeed-disable")
-      $('#maxSpeed-option').val('');
-    var str = $('#maxSpeed-option').val();
-    if (str && str!="")
-      $('#speed-wrapper .sprite_q_menu_pausefor').addClass('sprite_q_menu_pausefor_on');
-    else
-      $('#speed-wrapper .sprite_q_menu_pausefor').removeClass('sprite_q_menu_pausefor_on');
+  $("#maxSpeed-option").focus(function(){ 
+    $.plush.focusedOnSpeedChanger = true; 
+  }).blur(function(){ 
+    $.plush.focusedOnSpeedChanger = false; 
+  }).keyup(function (e) {
+    // Catch the enter
+    if (e.keyCode == 13) {
+      $("#maxSpeed-enable").click()
+    }
+  })
+  
+  // Submit the new speedlimit
+  $("#maxSpeed-enable, #maxSpeed-disable").click( function(e) { 
+    // Remove
+    if ($(e.target).attr('id')=="maxSpeed-disable") {
+        $('#maxSpeed-option').val('');
+    }
+    var speedLimit = $('#maxSpeed-option').val();
+    if (speedLimit && speedLimit!="") {
+        $('#speed-wrapper .sprite_q_menu_pausefor').addClass('sprite_q_menu_pausefor_on');
+    } else {
+        $('#speed-wrapper .sprite_q_menu_pausefor').removeClass('sprite_q_menu_pausefor_on');
+    }
+    // Transform if nessecary
+    if(speedLimit != '' && $.plush.speedLimitType != '%') {
+        // Add the label
+        speedLimit = speedLimit + $.plush.speedLimitType;
+    }
     $.ajax({
       headers: {"Cache-Control": "no-cache"},
       type: "POST",
       url: "tapi",
-      data: {mode:'config', name:'set_speedlimit', value: str, apikey: $.plush.apikey}
+      data: {mode:'config', name:'set_speedlimit', value: speedLimit, apikey: $.plush.apikey}
     });
+    // Update
+    $.plush.RefreshQueue();
   });
 
   // Refresh rate
@@ -240,7 +271,28 @@ jQuery(function($){
       headers: {"Cache-Control": "no-cache"},
       type: "POST",
       url: "tapi",
-      data: {mode:'queue', name:'delete', value:value, del_files:del_files, apikey: $.plush.apikey},
+      data: {mode:'queue', name:'delete', value:value, del_files:del_files, search: $('#queueSearchBox').val(), apikey: $.plush.apikey},
+      success: function(){
+        $.colorbox.close();
+        $.plush.modalOpen=false;
+        $.plush.RefreshQueue();
+      }
+    });
+  });
+
+  // Retry all failed jobs
+  $('#queue_retry').click(function(event) {
+    $.colorbox({ inline:true, href:"#queue_retry_modal", title:'',
+      innerWidth:"375px", innerHeight:"250px", initialWidth:"375px", initialHeight:"250px", speed:0, opacity:0.7
+    });
+    return false;
+  });
+  $('#queue_retry_modal input:submit').click(function(){
+    $.ajax({
+      headers: {"Cache-Control": "no-cache"},
+      type: "POST",
+      url: "tapi",
+      data: {mode:'retry_all', apikey: $.plush.apikey},
       success: function(){
         $.colorbox.close();
         $.plush.modalOpen=false;
@@ -444,7 +496,7 @@ jQuery(function($){
 };
 
   // static-element tooltips
-  $('body').delegate('#last_warning, #time-left, #multi_delete, #explain-blockRefresh, #pause_resume, #hist_purge, #queueTable td.download-title a, #queueTable td.eta span, #queueTable td.options .icon_nzb_remove, #historyTable td.options .icon_nzb_remove, #historyTable td div.icon_history_verbose', 'mouseover mouseout mousemove', function(event) {
+  $('body').delegate('#pausefor_title, #last_warning, #time-left, #multi_delete, #explain-blockRefresh, #pause_resume, #hist_purge, #queueTable td.download-title a, #queueTable td.eta span, #queueTable td.options .icon_nzb_remove, #historyTable td.options .icon_nzb_remove, #historyTable td div.icon_history_verbose', 'mouseover mouseout mousemove', function(event) {
     var link = this,
       $link = $(this);
 
@@ -489,6 +541,13 @@ jQuery(function($){
 
   InitQueue : function() {
 
+  // Search
+  $('#queueSearchForm').submit(function(){
+    $.plush.queuecurpage = 0; // default 1st page
+    $.plush.RefreshQueue();
+    return false;
+  });
+
   // Pause/resume toggle (queue)
   $('#pause_resume').click(function(event) {
     $('.queue-buttons-pause .sprite_q_menu_pausefor').removeClass('sprite_q_menu_pausefor_on');
@@ -530,17 +589,6 @@ jQuery(function($){
   $('#queue').hover(
     function(){ $.plush.skipRefresh=true; }, // over
     function(){ $.plush.skipRefresh=false; } // out
-  );
-
-  // refresh on mouseout after deletion
-  $('#queue').hover(  // $.mouseout was triggering too often
-    function(){}, // over
-    function(){   // out
-      if ($.plush.pendingQueueRefresh) {
-        $.plush.pendingQueueRefresh = false;
-        $.plush.RefreshQueue();
-      }
-    }
   );
 
   // NZB pause/resume individual toggle
@@ -1044,7 +1092,7 @@ $("a","#multiops_inputs").click(function(e){
   $('#historyTable .modal').colorbox({ innerWidth:"80%", innerHeight:"80%", initialWidth:"80%", initialHeight:"80%", speed:0, opacity:0.7 });
   $("#historyTable .modal-detail").colorbox({ inline:true,
     href: function(){return "#details-"+$(this).parent().parent().attr('id');},
-    title:function(){return $(this).text();},
+    title:function(){return $(this).text().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");},
     innerWidth:"80%", innerHeight:"300px", initialWidth:"80%", initialHeight:"300px", speed:0, opacity:0.7 });
 
   // modal for reporting issues  
@@ -1087,7 +1135,7 @@ $.plush.histprevslots = $.plush.histnoofslots; // for the next refresh
       type: "POST",
       url: "tapi",
       data: {mode:'queue', name:'rating', value: nzo_id, type: videoAudio, setting: $(this).val(), apikey: $.plush.apikey},
-      success: $.plush.RefreshHistory
+      success: $.plush.Refresh
     });
   });
 
@@ -1099,7 +1147,7 @@ $.plush.histprevslots = $.plush.histnoofslots; // for the next refresh
       type: "POST",
       url: "tapi",
       data: {mode:'queue', name:'rating', value: nzo_id, type: 'vote', setting: upDown, apikey: $.plush.apikey},
-      success: $.plush.RefreshHistory
+      success: $.plush.Refresh
     });
   });
 
@@ -1127,7 +1175,7 @@ $.plush.histprevslots = $.plush.histnoofslots; // for the next refresh
       success: $.plush.RefreshHistory
     });
   });
-  
+
   }, // end $.plush.InitHistory()
 
 
@@ -1151,7 +1199,7 @@ $.plush.histprevslots = $.plush.histnoofslots; // for the next refresh
 
 
   // ***************************************************************
-  //  $.plush.RefreshQueue() -- fetch HTML data from queue.tmpl (AHAH)
+  //  $.plush.RefreshQueue() -- fetch HTML data from queue.tmpl
 
   RefreshQueue : function(page) {
 
@@ -1173,36 +1221,55 @@ $.plush.histprevslots = $.plush.histnoofslots; // for the next refresh
   // Refresh state notification
   $('#manual_refresh_wrapper').removeClass('refresh_skipped').addClass('refreshing');
 
+  if ($('#queueSearchBox').val() )
+    var data = {start: 0, limit: 0, search: $('#queueSearchBox').val() };
+  else
+    var data = {start: ( page * $.plush.queuePerPage ), limit: $.plush.queuePerPage};
+
   // Fetch updated content from queue.tmpl
   $.ajax({
     headers: {"Cache-Control": "no-cache"},
     type: "POST",
     url: "queue/",
-    data: {start: ( page * $.plush.queuePerPage ), limit: $.plush.queuePerPage},
+    data: data,
     success: function(result){
       if (!result) {
         $('#manual_refresh_wrapper').addClass('refresh_skipped'); // Failed refresh notification
         return;
       }
 
-  $('.left_stats .initial-loading').hide();
-  $('#queue').html(result);               // Replace queue contents with queue.tmpl
-  $('#queue .avg_rate').rateit({readonly: true, resetable: false, step: 0.5});
-  $('#queue .avg_rate').each(function() { $(this).rateit('value', $(this).attr('value') / 2); });
+      $('.left_stats .initial-loading').hide();
+      $('#queue').html(result);               // Replace queue contents with queue.tmpl
+      $('#queue .avg_rate').rateit({readonly: true, resetable: false, step: 0.5});
+      $('#queue .avg_rate').each(function() { $(this).rateit('value', $(this).attr('value') / 2); });
 
-  if ($.plush.multiOps) // add checkboxes
-    $('<input type="checkbox" class="multiops" />').appendTo('#queue tr td.nzb_status_col');
-  if ($.plush.multiOpsChecks) // checkbox state persistence
-    for (var nzo_id in $.plush.multiOpsChecks)
-      $('#'+nzo_id+' .multiops').prop('checked',true);
+      if ($.plush.multiOps) // add checkboxes
+        $('<input type="checkbox" class="multiops" />').appendTo('#queue tr td.nzb_status_col');
+      if ($.plush.multiOpsChecks) // checkbox state persistence
+        for (var nzo_id in $.plush.multiOpsChecks)
+          $('#'+nzo_id+' .multiops').prop('checked',true);
 
-
-  $('#queue-pagination span').removeClass('loading');   // Remove spinner graphic from pagination
-  $('#manual_refresh_wrapper').removeClass('refreshing'); // Refresh state notification
-}
-});
+      $('#queue-pagination span').removeClass('loading');   // Remove spinner graphic from pagination
+      $('#manual_refresh_wrapper').removeClass('refreshing'); // Refresh state notification
+    }
+  });
 
   }, // end $.plush.RefreshQueue()
+
+
+
+  // ***************************************************************
+  //  $.plush.SetQueueStats(str) -- called from queue.tmpl
+  SetQueueStats : function(str) {
+    $('#queue_stats').html(str);
+  },
+
+
+  // ***************************************************************
+  //  $.plush.SetQueueStats(str) -- called from queue.tmpl
+  SetQueueStats : function(str) {
+    $('#queue_stats').html(str);
+  },
 
 
   // ***************************************************************
@@ -1265,11 +1332,37 @@ $.plush.histprevslots = $.plush.histnoofslots; // for the next refresh
 
   // ***************************************************************
   //  $.plush.SetQueueSpeedLimit(str) -- called from queue.tmpl
-  SetQueueSpeedLimit : function(str) {
-    $.plush.speedLimit = str;
-    if ($("#maxSpeed-option").val() != str && !$.plush.focusedOnSpeedChanger)
-      $("#maxSpeed-option").val(str);
-    if (str && str!="")
+  SetQueueSpeedLimit : function(speedLimit, speedLimitAbs) {
+    // For switching using the select
+    if(!speedLimit) speedLimit = $.plush.speedLimit;
+    if(speedLimitAbs == undefined) speedLimitAbs = $.plush.speedLimitAbs;
+    
+    // Save 
+    $.plush.speedLimit = speedLimit;
+    $.plush.speedLimitAbs = speedLimitAbs;
+    
+    // How do we format?
+    switch($.plush.speedLimitType) {
+        case '%':
+            speedlimitDisplay = speedLimit;
+            break;
+        case 'K':
+            // Only whole KB/s
+            speedlimitDisplay = Math.round(speedLimitAbs/1024);
+            break;
+        case 'M':
+            speedlimitDisplay = speedLimitAbs/1024/1024;
+            break;
+    }
+    
+    // In case nothing and we make the displaying of the float more pretty
+    speedlimitDisplay = (isNaN(speedlimitDisplay) || speedlimitDisplay == '0') ? '' : speedlimitDisplay;
+    speedlimitDisplay = Math.round(speedlimitDisplay*10)/10;
+    
+    // Update
+    if ($("#maxSpeed-option").val() != speedlimitDisplay && !$.plush.focusedOnSpeedChanger)
+      $("#maxSpeed-option").val(speedlimitDisplay);
+    if (speedlimitDisplay && speedlimitDisplay!="")
       $('#speed-wrapper .sprite_q_menu_pausefor').addClass('sprite_q_menu_pausefor_on');
     else
       $('#speed-wrapper .sprite_q_menu_pausefor').removeClass('sprite_q_menu_pausefor_on');

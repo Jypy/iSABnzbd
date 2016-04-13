@@ -4,7 +4,7 @@
 
   jQuery(function($) {
     $.plush.queuenoofslots = $noofslots;
-    $.plush.SetQueueSpeedLimit('$speedlimit');
+    $.plush.SetQueueSpeedLimit('$speedlimit', '$speedlimit_abs');
     $.plush.SetQueueFinishAction('$finishaction');
     $.plush.SetWarnings($have_warnings,"<!--#echo $last_warning.replace("\n"," ").replace('"',"'").replace('\\','\\\\') #-->");
     $.plush.SetQueuePauseInfo(<!--#if $paused#-->true<!--#else#-->false<!--#end if#-->,'$pause_int');
@@ -19,10 +19,10 @@
   stats += '<strong>$mbleft&nbsp;&nbsp;&frasl;&nbsp;&nbsp;$mb&nbsp;$T('MB')</strong>&nbsp;$T('Plush-remaining')';
   <!--#end if#-->
   <!--#if $diskspace1 == $diskspace2#-->
-  stats += '<div class="queue_footer_icon <!--#if float($diskspace1) < float($mbleft)/1024 #-->main_sprite_container sprite_q_stats_needspace" title="$T('Plush-notEnoughSpace')<!--#else#-->main_sprite_container sprite_q_stats_incomplete<!--#end if#-->">&nbsp;&nbsp;&nbsp;</div><strong>$diskspace1&nbsp;GB</strong>&nbsp;$T('Plush-freeSpace')';
+  stats += '<div class="queue_footer_icon <!--#if float($diskspace1) < float($mbleft)/1024 #-->main_sprite_container sprite_q_stats_needspace" title="$T('Plush-notEnoughSpace')<!--#else#-->main_sprite_container sprite_q_stats_incomplete<!--#end if#-->">&nbsp;&nbsp;&nbsp;</div><strong>$diskspace1_norm$T('B')</strong>&nbsp;$T('Plush-freeSpace')';
   <!--#else#-->
   stats += '<div class="queue_footer_icon <!--#if float($diskspace1) < float($mbleft)/1024 #-->main_sprite_container sprite_q_stats_needspace" title="$T('Plush-notEnoughSpace')<!--#else#-->main_sprite_container sprite_q_stats_incomplete<!--#end if#-->">&nbsp;&nbsp;&nbsp;</div><strong>$diskspace1&nbsp;$T('GB')</strong>&nbsp;$T('Plush-freeSpaceTemp')'
-    +'<div class="queue_footer_icon <!--#if float($diskspace2) < float($mbleft)/1024 #-->main_sprite_container sprite_q_stats_needspace" title="$T('Plush-notEnoughSpace')<!--#else#-->main_sprite_container sprite_q_stats_complete<!--#end if#-->">&nbsp;&nbsp;&nbsp;</div><strong>$diskspace2&nbsp;$T('GB')</strong>&nbsp;$T('Plush-freeSpace')';
+    +'<div class="queue_footer_icon <!--#if float($diskspace2) < float($mbleft)/1024 #-->main_sprite_container sprite_q_stats_needspace" title="$T('Plush-notEnoughSpace')<!--#else#-->main_sprite_container sprite_q_stats_complete<!--#end if#-->">&nbsp;&nbsp;&nbsp;</div><strong>$diskspace2_norm$T('B')</strong>&nbsp;$T('Plush-freeSpace')';
   <!--#end if#-->
   $.plush.SetQueueStats(stats);
 });
@@ -75,7 +75,7 @@
       <td></td>
     <!--#end if#-->
   <!--#end if#-->
-
+  
   <td>
     <div class="main_sprite_container sprite_progressbar_bg">
       <div class="main_sprite_container sprite_progress_done" style="background-position: -<!--#if $slot.mb == "0.00" then "120" else int(120 - 120.0 / 100.0 * int(100 - float($slot.mbleft) / float($slot.mb) * 100))#-->px -401px">

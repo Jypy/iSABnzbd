@@ -1,0 +1,23 @@
+#encoding UTF-8
+##
+## SABnzbd 装取 URL 错误电子邮件模板
+## 这是一款 Cheetah 模板
+## 文档: http://sabnzbd.wikidot.com/email-templates
+##
+## 新行与空格均有重要意义!
+##
+## 这些是电子邮件头
+To: $to
+From: $from
+Date: $date
+Subject: SABnzbd 装取 NZB 失败
+X-priority: 5
+X-MS-priority: 5
+## 到主体部分时必须要有空行!
+
+Hi,
+
+SABnzbd 从 $url 检索 NZB 失败。
+错误信息为: $msg
+
+Bye

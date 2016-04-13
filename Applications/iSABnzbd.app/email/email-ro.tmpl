@@ -1,28 +1,28 @@
 #encoding UTF-8
 ##
-## Sablon Email Original pentru SABnzbd
-## Acesta este un Sablon Cheetah
-## Documentatie: http://sabnzbd.wikidot.com/email-templates
+## Șablon Email Original pentru SABnzbd
+## Acesta este un Șablon Cheetah
+## Documentație: http://sabnzbd.wikidot.com/email-templates
 ##
-##Rândurile noi si caracterele spatiu sunt importante!
+##Rândurile noi și caracterele spațiu sunt importante!
 ##
 ## Acestea sunt antetele email
 To: $to
 From: $from
 Date: $date
-Subject: SABnzbd <!--#if $status then "a terminat" else "nu a reusit" #--> sarcina $name
+Subject: SABnzbd <!--#if $status then "a terminat" else "nu a reuşit" #--> sarcina $name
 X-priority: 5
 X-MS-priority: 5
-## Dupã acesta urmeazã continutul, este necesar o linie goalã!
+## După acesta urmează conţinutul, este necesar o linie goală!
 
 Salut,
 <!--#if $status #-->
-SABnzbd a descãrcat "$name" <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
+SABnzbd a descărcat "$name" <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
 <!--#else#-->
-SABnzbd nu a reusit sã descarce "$name" <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
+SABnzbd nu a reuşit să descarce "$name" <!--#if $msgid=="" then "" else "(newzbin #" + $msgid + ")"#-->
 <!--#end if#-->
 Terminat la $end_time
-Mãrime $size
+Mărime $size
 
 Rezultatele sarcinii:
 <!--#for $stage in $stages #-->
@@ -36,7 +36,7 @@ Rezultatul script-ului utilizatorului "$script" (Exit code = $script_ret):
 $script_output
 <!--#end if#-->
 <!--#if $status #-->
-Bucurati-vã!
+Bucuraţi-vă!
 <!--#else#-->
 Ne pare rau!
 <!--#end if#-->

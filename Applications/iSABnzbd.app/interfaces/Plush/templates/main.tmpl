@@ -6,6 +6,7 @@
 
   <div id="hdr-queue" class="tilex_sprite_container sprite_tile_qh">
     <div class="logo main_sprite_container sprite_topleft_queue"><h1><!--#if $active_lang in ('de', 'fr') then $T('menu-queue') else $T('menu-queue').upper()#--></h1></div>
+    <form id="queueSearchForm" action="#"><input id="queueSearchBox" type="text" size="8" class="listSearchBox main_sprite_container sprite_h_search" /></form>
     <div class="queue-buttons queue-buttons-pause lang-$active_lang main_sprite_container sprite_topright_queue">
       <ul>
         <li class="main_sprite_container <!--#if $paused then 'sprite_q_pause_on' else 'sprite_q_pause'#-->" title="$T('link-pause') &frasl; $T('link-resume')" id="pause_resume"></li>
@@ -57,6 +58,7 @@
                 </a>
               </li>
               <li><a id="queue_purge" class="pointer" rel="$T('Plush-confirmPurgeQ')">$T('Plush-purge')</a></li>
+              <li><a id="queue_retry" class="pointer" rel="$T('Plush-confirmRetryQ')">$T('link-retryAll')</a></li>
               <li>
                 <a class="sf-with-ul">$T('Plush-sort')</a>
                 <ul id="queue_sort_list">
@@ -80,11 +82,19 @@
         <ul>
           <li class="main_sprite_container sprite_q_menu_pausefor">
             <ul>
-              <li><a>$T('Plush-maxSpeed'):&nbsp;&nbsp;<input type="text" id="maxSpeed-option" size="8" />&nbsp;&nbsp;$T('KBs')</a></li>
-              <li><a>
-                <input type="button" value="$T('Plush-reset')" id="maxSpeed-disable" class="float-right" />
-                <input type="button" value="$T('button-save')" id="maxSpeed-enable" class="float-right" />
-              </a></li>
+              <li>
+                $T('Plush-maxSpeed'):&nbsp;&nbsp;
+                <input type="text" id="maxSpeed-option" size="4" /> 
+                <select id="maxSpeed-label">
+                    <option value="%">%</option>
+                    <option value="K">KB/s</option>
+                    <option value="M">MB/s</option>
+                </select>
+              </li>
+              <li>
+                <input type="button" value="$T('Plush-reset')" id="maxSpeed-disable" />
+                <input type="button" value="$T('button-save')" id="maxSpeed-enable" />
+              </li>
             </ul>
         </li>
         </ul>
@@ -191,7 +201,7 @@
           <option value="0">$T('showAllHis')</option>
           <option value="1">$T('showFailedHis')</option>
         </select></li>
-        <li><form id="historySearchForm" action="#"><input id="historySearchBox" type="text" size="8" class="main_sprite_container sprite_h_search" /></form></li>
+        <li><form id="historySearchForm" action="#"><input id="historySearchBox" type="text" size="8" class="listSearchBox main_sprite_container sprite_h_search" /></form></li>
       </ul>
     </div>
   </div>
